@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PDF Analyzer</title>
+</head>
+<body>
+    <h1>Upload and Analyze PDF</h1>
+    <form id="uploadForm" enctype="multipart/form-data" method="post">
+        <input type="file" name="pdf" accept="application/pdf" required>
+        <button type="submit">Upload and Analyze</button>
+    </form>
+    <div id="result"></div>
+    <script>
+        document.getElementById('uploadForm').onsubmit = function(event) {
+            event.preventDefault();
+            const formData = new FormData();
+            const pdfFile = document.querySelector('input[type="file"]').files[0];
+            formData.append('pdf', pdfFile);
+
+            fetch('/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => {
+                // Check if the response is JSON
+                const contentType = response.headers.get('content-type');
+                if (contentType && contentType.indexOf('application/json') !== -1) {
+                    return response.json();
+                } else {
+                    return response.text().then(text => { throw new Error(text); });
+                }
+            })
+            .then(data => {
+                // Display the HTML result
+                document.getElementById('result').innerHTML = data.html_result;
+            })
+            .catch(error => {
+                console.error(error);
+                document.getElementById('result').innerText = 'An error occurred: ' + error.message;
+            });
+        }
+    </script>
+</body>
+</html>
